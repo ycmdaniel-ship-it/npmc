@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>堂區會議報告填寫範本 V1.3</title>
+  <title>堂區會議報告填寫範本 V1.4</title>
   <style>
     :root{
       --ink:#1f2937; --muted:#6b7280; --line:#d1d5db; --soft:#f3f4f6; --panel:#ffffff; --accent:#374151;
@@ -25,7 +25,7 @@
     textarea{ min-height:86px; resize:vertical; }
     .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
-    .row{ display:grid; grid-template-columns: 1.2fr .8fr .8fr 1.5fr auto; gap:8px; align-items:end; margin:8px 0; }
+    .row{ display:grid; grid-template-columns: 1.4fr .9fr 1.5fr auto; gap:8px; align-items:end; margin:8px 0; }
     .activity-row{ display:grid; grid-template-columns: .9fr 1.1fr 1.6fr .6fr 1.6fr auto; gap:8px; align-items:end; margin:8px 0; }
     .follow-row{ display:grid; grid-template-columns: 1.6fr 1fr 1fr auto; gap:8px; align-items:end; margin:8px 0; }
     button{ border:0; border-radius:10px; padding:9px 13px; font-family:inherit; font-size:15px; cursor:pointer; background:#374151; color:white; }
@@ -34,16 +34,19 @@
     button.small{ padding:8px 10px; font-size:13px; }
     .actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
     .preview{ background:white; min-height:900px; padding:22px; border:1px solid var(--line); }
-    .report-title{ text-align:center; margin-bottom:18px; }
-    .report-title h1{ font-size:22px; margin:0; }
-    .report-title h2{ font-size:20px; margin:4px 0 0; border:none; padding:0; }
-    .dept-title{ text-align:center; font-weight:700; border:1px solid #111; padding:5px; margin:18px 0 14px; font-size:18px; }
-    .report h3{ font-size:16px; margin:15px 0 8px; }
-    .report table{ width:100%; border-collapse:collapse; margin:8px 0 12px; font-size:14px; }
-    .report th,.report td{ border:1px solid #444; padding:6px 7px; vertical-align:top; }
+    .report{ font-size:12pt; line-height:1.28; }
+    .report *{ font-size:12pt !important; }
+    .report-title{ text-align:center; margin-bottom:10px; }
+    .report-title h1{ margin:0; }
+    .report-title h2{ margin:3px 0 0; border:none; padding:0; }
+    .dept-title{ text-align:center; font-weight:700; border:1px solid #111; padding:3px 5px; margin:10px 0 8px; }
+    .report h3{ margin:8px 0 4px; }
+    .report p{ margin:3px 0 6px; }
+    .report table{ width:100%; border-collapse:collapse; margin:4px 0 7px; }
+    .report th,.report td{ border:1px solid #444; padding:2px 4px; vertical-align:top; line-height:1.22; }
     .report th{ background:#f2f2f2; text-align:left; }
     .empty{ color:#777; }
-    .decision{ border:1px solid #111; background:#f7f7f7; padding:10px; margin:8px 0; }
+    .decision{ border:1px solid #111; background:#f7f7f7; padding:5px 6px; margin:4px 0 6px; line-height:1.25; }
     .muted{ color:#666; }
     .print-only{ display:none; }
     @media (max-width: 900px){ .row,.activity-row,.follow-row,.grid2,.grid3{ grid-template-columns:1fr; } }
@@ -56,8 +59,11 @@
       .card{ border:0; box-shadow:none; padding:0; }
       .print-only{ display:block; }
       @page{ size:A4; margin:16mm 14mm; }
-      .report{ font-size:12.5pt; }
-      .report table{ font-size:10.5pt; page-break-inside:auto; }
+      .report{ font-size:12pt; line-height:1.25; }
+      .report *{ font-size:12pt !important; }
+      .report table{ page-break-inside:auto; margin:4px 0 7px; }
+      .report th,.report td{ padding:2px 4px; line-height:1.2; }
+      .report p{ margin:3px 0 6px; }
       .report tr{ page-break-inside:avoid; page-break-after:auto; }
       .dept-title{ page-break-after:avoid; }
     }
@@ -67,7 +73,7 @@
   <div class="app">
     <div class="topbar no-print">
       <div>
-        <h1>堂區會議報告填寫範本 V1.3</h1>
+        <h1>堂區會議報告填寫範本 V1.4</h1>
         <div class="hint">上方填寫資料，下方會即時生成正式報告預覽。完成後可輸出 PDF、下載 Word 可開啟的 DOC 檔，或將草稿另存成新的 HTML 檔，下次開啟時會自動載入內容。</div>
       </div>
       <div class="actions">
@@ -190,8 +196,7 @@
     div.className='row attendance-item';
     div.innerHTML = `
       <div><label>組別 / 單位 / 恆常活動</label><input value="${esc(data.group||'')}" placeholder="例如：成年小組"></div>
-      <div><label>前月人數</label><input value="${esc(data.last||'')}" placeholder="例如：63"></div>
-      <div><label>上月人數</label><input value="${esc(data.now||'')}" placeholder="例如：67"></div>
+      <div><label>平均出席人數</label><input value="${esc(data.avg||data.now||'')}" placeholder="例如：67"></div>
       <div><label>備註</label><input value="${esc(data.note||'')}" placeholder="可留空"></div>
       <button type="button" class="danger small" onclick="this.parentElement.remove(); renderReport();">刪除</button>`;
     attendanceRows.appendChild(div); renderReport();
@@ -258,7 +263,7 @@
 
   function renderReport(){
     const d = getData();
-    const attendance = collectRows(attendanceRows,'.attendance-item',['group','last','now','note']);
+    const attendance = collectRows(attendanceRows,'.attendance-item',['group','avg','note']);
     const activities = collectRows(activityRows,'.activity-item',['date','host','name','count','note']);
     const follows = collectRows(followRows,'.follow-item',['item','owner','due']);
     const decisionHtml = d.hasDecision === 'yes' ? `
@@ -277,7 +282,7 @@
       </div>
       <div class="dept-title">${esc(d.dept || '部門／牧區名稱')}</div>
       <h3>一、恆常聚會人數</h3>
-      ${tableOrEmpty(attendance, ['組別 / 單位 / 恆常活動','前月人數','上月人數','備註'], ['group','last','now','note'])}
+      ${tableOrEmpty(attendance, ['組別 / 單位 / 恆常活動','平均出席人數','備註'], ['group','avg','note'])}
       <h3>二、活動／事工</h3>
       ${tableOrEmpty(activities, ['日期','主辦單位','活動／事工','人數','其他補充'], ['date','host','name','count','note'])}
       <h3>三、其他補充報告</h3>
@@ -299,17 +304,19 @@
     renderReport();
     const title = (formatMonth(form.month.value) || '') + '堂區會議報告_' + (form.dept.value || '未命名');
     const styles = `
-      body{ font-family:"PMingLiU","MingLiU","Noto Serif TC",serif; color:#111; line-height:1.55; }
-      .report{ width:100%; }
-      .report-title{ text-align:center; margin-bottom:18px; }
-      .report-title h1{ font-size:20pt; margin:0; }
-      .report-title h2{ font-size:18pt; margin:4px 0 0; }
-      .dept-title{ text-align:center; font-weight:700; border:1px solid #111; padding:5px; margin:18px 0 14px; font-size:16pt; }
-      h3{ font-size:13pt; margin:15px 0 8px; }
-      table{ width:100%; border-collapse:collapse; margin:8px 0 12px; font-size:11pt; }
-      th,td{ border:1px solid #444; padding:6px 7px; vertical-align:top; }
+      body{ font-family:"PMingLiU","MingLiU","Noto Serif TC",serif; color:#111; line-height:1.28; font-size:12pt; }
+      .report{ width:100%; font-size:12pt; line-height:1.28; }
+      .report *{ font-size:12pt !important; }
+      .report-title{ text-align:center; margin-bottom:10px; }
+      .report-title h1{ margin:0; }
+      .report-title h2{ margin:3px 0 0; }
+      .dept-title{ text-align:center; font-weight:700; border:1px solid #111; padding:3px 5px; margin:10px 0 8px; }
+      h3{ margin:8px 0 4px; }
+      p{ margin:3px 0 6px; }
+      table{ width:100%; border-collapse:collapse; margin:4px 0 7px; }
+      th,td{ border:1px solid #444; padding:2px 4px; vertical-align:top; line-height:1.2; }
       th{ background:#f2f2f2; text-align:left; }
-      .decision{ border:1px solid #111; background:#f7f7f7; padding:10px; margin:8px 0; }
+      .decision{ border:1px solid #111; background:#f7f7f7; padding:5px 6px; margin:4px 0 6px; line-height:1.25; }
       .muted{ color:#666; }
       .empty{ color:#777; }
     `;
@@ -360,7 +367,7 @@
   function state(){
     return {
       fields:getData(),
-      attendance:collectRows(attendanceRows,'.attendance-item',['group','last','now','note']),
+      attendance:collectRows(attendanceRows,'.attendance-item',['group','avg','note']),
       activities:collectRows(activityRows,'.activity-item',['date','host','name','count','note']),
       follows:collectRows(followRows,'.follow-item',['item','owner','due'])
     };
