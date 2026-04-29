@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>堂區會議報告填寫範本 V1.4</title>
+  <style>
+    :root{
+      --ink:#1f2937; --muted:#6b7280; --line:#d1d5db; --soft:#f3f4f6; --panel:#ffffff; --accent:#374151;
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family:"Noto Serif TC","PMingLiU","MingLiU",serif; color:var(--ink); background:#f6f7f9; line-height:1.55; }
+    .app{ max-width:1180px; margin:0 auto; padding:24px; }
+    .topbar{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:18px; }
+    .topbar h1{ margin:0; font-size:26px; letter-spacing:.04em; }
+    .hint{ color:var(--muted); font-size:14px; margin-top:4px; }
+    .layout{ display:flex; flex-direction:column; gap:20px; align-items:stretch; }
+    .card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:0 6px 18px rgba(0,0,0,.04); }
+    .card h2{ margin:0 0 12px; font-size:20px; border-bottom:2px solid var(--accent); padding-bottom:8px; }
+    .section{ border:1px solid var(--line); border-radius:12px; padding:14px; margin:14px 0; background:#fff; }
+    .section h3{ margin:0 0 10px; font-size:17px; }
+    label{ display:block; font-weight:600; margin:10px 0 5px; }
+    input, textarea, select{ width:100%; padding:9px 10px; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit; font-size:15px; background:#fff; }
+    input[readonly]{ background:#f3f4f6; color:#374151; cursor:not-allowed; }
+    textarea{ min-height:86px; resize:vertical; }
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    .row{ display:grid; grid-template-columns: 1.4fr .9fr 1.5fr auto; gap:8px; align-items:end; margin:8px 0; }
+    .activity-row{ display:grid; grid-template-columns: .9fr 1.1fr 1.6fr .6fr 1.6fr auto; gap:8px; align-items:end; margin:8px 0; }
+    .follow-row{ display:grid; grid-template-columns: 1.6fr 1fr 1fr auto; gap:8px; align-items:end; margin:8px 0; }
+    button{ border:0; border-radius:10px; padding:9px 13px; font-family:inherit; font-size:15px; cursor:pointer; background:#374151; color:white; }
+    button.secondary{ background:#e5e7eb; color:#111827; }
+    button.danger{ background:#991b1b; }
+    button.small{ padding:8px 10px; font-size:13px; }
+    .actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .preview{ background:white; min-height:900px; padding:22px; border:1px solid var(--line); }
+    .report{ font-size:12pt; line-height:1.28; }
+    .report *{ font-size:12pt !important; }
+    .report-title{ text-align:center; margin-bottom:10px; }
+    .report-title h1{ margin:0; }
+    .report-title h2{ margin:3px 0 0; border:none; padding:0; }
+    .dept-title{ text-align:center; font-weight:700; border:1px solid #111; padding:3px 5px; margin:10px 0 8px; }
+    .report h3{ margin:8px 0 4px; }
+    .report p{ margin:3px 0 6px; }
+    .report table{ width:100%; border-collapse:collapse; margin:4px 0 7px; }
+    .report th,.report td{ border:1px solid #444; padding:2px 4px; vertical-align:top; line-height:1.22; }
+    .report th{ background:#f2f2f2; text-align:left; }
+    .empty{ color:#777; }
+    .decision{ border:1px solid #111; background:#f7f7f7; padding:5px 6px; margin:4px 0 6px; line-height:1.25; }
+    .muted{ color:#666; }
+    .print-only{ display:none; }
+    @media (max-width: 900px){ .row,.activity-row,.follow-row,.grid2,.grid3{ grid-template-columns:1fr; } }
+    @media print{
+      body{ background:white; }
+      .no-print{ display:none !important; }
+      .app{ max-width:none; padding:0; }
+      .layout{ display:block; }
+      .preview{ border:0; padding:0; min-height:0; }
+      .card{ border:0; box-shadow:none; padding:0; }
+      .print-only{ display:block; }
+      @page{ size:A4; margin:16mm 14mm; }
+      .report{ font-size:12pt; line-height:1.25; }
+      .report *{ font-size:12pt !important; }
+      .report table{ page-break-inside:auto; margin:4px 0 7px; }
+      .report th,.report td{ padding:2px 4px; line-height:1.2; }
+      .report p{ margin:3px 0 6px; }
+      .report tr{ page-break-inside:avoid; page-break-after:auto; }
+      .dept-title{ page-break-after:avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar no-print">
+      <div>
+        <h1>堂區會議報告填寫範本 V1.4</h1>
+        <div class="hint">上方填寫資料，下方會即時生成正式報告預覽。完成後可輸出 PDF、下載 Word 可開啟的 DOC 檔，或將草稿另存成新的 HTML 檔，下次開啟時會自動載入內容。</div>
+      </div>
+      <div class="actions">
+        <button onclick="printPdf()">輸出 / 儲存為 PDF</button>
+        <button onclick="downloadDoc()">下載 Word / DOC</button>
+        <button class="secondary" onclick="copyReportHtml()">複製報告內容</button>
+        <button class="secondary" onclick="downloadDraftHtml()">儲存草稿成 HTML</button>
+        <button class="secondary" onclick="saveDraft()">暫存於此瀏覽器</button>
+        <button class="secondary" onclick="loadDraft()">載入瀏覽器草稿</button>
+        <button class="danger" onclick="clearAll()">清空</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <form id="reportForm" class="card no-print" oninput="renderReport()">
+        <h2>填寫資料</h2>
+
+        <div class="section">
+          <h3>基本資料</h3>
+          <div class="grid2">
+            <div><label>堂會名稱</label><input name="church" value="北角衞理堂" readonly aria-readonly="true"></div>
+            <div><label>報告月份</label><input type="month" name="month" value="2026-03"></div>
+            <div><label>部門／牧區名稱</label>
+              <select name="dept">
+                <option value="">請選擇</option>
+                <option>在學牧區</option>
+                <option>成年及家庭牧區</option>
+                <option>常青牧區</option>
+                <option>宣教差傳部</option>
+                <option>信徒培育部</option>
+                <option>教友關係部</option>
+                <option>崇拜聖樂部</option>
+                <option>行政媒體部</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>一、恆常聚會人數</h3>
+          <div id="attendanceRows"></div>
+          <button type="button" class="secondary small" onclick="addAttendanceRow()">＋ 新增組別</button>
+        </div>
+
+        <div class="section">
+          <h3>二、活動／事工</h3>
+          <div id="activityRows"></div>
+          <button type="button" class="secondary small" onclick="addActivityRow()">＋ 新增活動</button>
+        </div>
+
+        <div class="section">
+          <h3>三、其他補充報告</h3>
+          <label>請以 1、2、3 分點填寫；每點建議不超過 80 字。</label>
+          <textarea name="important" placeholder="1.&#10;2.&#10;3."></textarea>
+        </div>
+
+        <div class="section">
+          <h3>四、需要交堂區議會跟進</h3>
+          <label>是否需要交堂區議會跟進？</label>
+          <select name="hasDecision" onchange="toggleDecision(); renderReport();">
+            <option value="no">沒有</option>
+            <option value="yes">有</option>
+          </select>
+          <div id="decisionBox" style="display:none;">
+            <label>跟進事項內容</label>
+            <textarea name="decisionNote" placeholder="請說明事項名稱、背景、建議議決內容及處理方法。" style="min-height:130px;"></textarea>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>五、需要部門協作</h3>
+          <label>是否需要部門協作？</label>
+          <select name="hasFollow" onchange="toggleFollow(); renderReport();">
+            <option value="no">沒有</option>
+            <option value="yes">有</option>
+          </select>
+          <div id="followBox" style="display:none;">
+            <div id="followRows"></div>
+            <button type="button" class="secondary small" onclick="addFollowRow()">＋ 新增協作事項</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>六、未來事工預告</h3>
+          <label>請列出未來事工安排、日期或預告事項。</label>
+          <textarea name="future" placeholder="1.&#10;2.&#10;3."></textarea>
+        </div>
+      </form>
+
+      <div class="card">
+        <h2 class="no-print">報告預覽</h2>
+        <div id="preview" class="preview report"></div>
+      </div>
+    </div>
+  </div>
+
+<script id="embeddedDraft" type="application/json"></script>
+<script>
+  const form = document.getElementById('reportForm');
+  const attendanceRows = document.getElementById('attendanceRows');
+  const activityRows = document.getElementById('activityRows');
+  const followRows = document.getElementById('followRows');
+
+  function esc(s){ return String(s || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function nl2br(s){ return esc(s).replace(/\n/g,'<br>'); }
+  function getData(){ return Object.fromEntries(new FormData(form).entries()); }
+  function formatMonth(value){
+    if(!value) return '';
+    const parts = String(value).split('-');
+    if(parts.length === 2 && parts[0] && parts[1]){
+      const month = parseInt(parts[1], 10);
+      if(!Number.isNaN(month)) return parts[0] + '年' + month + '月';
+    }
+    return value;
+  }
+  function val(selector, root=document){ const el=root.querySelector(selector); return el ? el.value.trim() : ''; }
+
+  function addAttendanceRow(data={}){
+    const div = document.createElement('div');
+    div.className='row attendance-item';
+    div.innerHTML = `
+      <div><label>組別 / 單位 / 恆常活動</label><input value="${esc(data.group||'')}" placeholder="例如：成年小組"></div>
+      <div><label>平均出席人數</label><input value="${esc(data.avg||data.now||'')}" placeholder="例如：67"></div>
+      <div><label>備註</label><input value="${esc(data.note||'')}" placeholder="可留空"></div>
+      <button type="button" class="danger small" onclick="this.parentElement.remove(); renderReport();">刪除</button>`;
+    attendanceRows.appendChild(div); renderReport();
+  }
+
+  function addActivityRow(data={}){
+    const div = document.createElement('div');
+    div.className='activity-row activity-item';
+    div.innerHTML = `
+      <div><label>日期 (DD/MM/YY)</label><input value="${esc(data.date||'')}" placeholder="01/03/26"></div>
+      <div><label>主辦單位</label><input value="${esc(data.host||'')}" placeholder="例如：華語團契"></div>
+      <div><label>活動／事工</label><input value="${esc(data.name||'')}" placeholder="活動名稱"></div>
+      <div><label>人數</label><input value="${esc(data.count||'')}" placeholder="14"></div>
+      <div><label>其他補充</label><input value="${esc(data.note||'')}" placeholder="可留空"></div>
+      <button type="button" class="danger small" onclick="this.parentElement.remove(); renderReport();">刪除</button>`;
+    activityRows.appendChild(div); renderReport();
+  }
+
+  function addFollowRow(data={}){
+    const div = document.createElement('div');
+    div.className='follow-row follow-item';
+    div.innerHTML = `
+      <div><label>事項</label><input value="${esc(data.item||'')}" placeholder="例如：添置梯子"></div>
+      <div><label>建議跟進部門</label><input value="${esc(data.owner||'')}" placeholder="例如：堂務組"></div>
+      <div><label>期望完成時間</label><input value="${esc(data.due||'')}" placeholder="例如：下次會議前"></div>
+      <button type="button" class="danger small" onclick="this.parentElement.remove(); renderReport();">刪除</button>`;
+    followRows.appendChild(div); renderReport();
+  }
+
+
+
+  function addDefaultAttendanceRows(){
+    for(let i=0;i<3;i++) addAttendanceRow();
+  }
+
+  function addDefaultActivityRows(){
+    for(let i=0;i<3;i++) addActivityRow();
+  }
+
+  function collectRows(container, cls, fields){
+    return [...container.querySelectorAll(cls)].map(row => {
+      const inputs = row.querySelectorAll('input');
+      const obj = {};
+      fields.forEach((f,i)=> obj[f] = inputs[i] ? inputs[i].value.trim() : '');
+      return obj;
+    }).filter(obj => Object.values(obj).some(v => v));
+  }
+
+  function tableOrEmpty(rows, headers, keys){
+    if(!rows.length) return '<p class="empty">沒有填寫。</p>';
+    return `<table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>`+
+      rows.map(r=>`<tr>${keys.map(k=>`<td>${nl2br(r[k])}</td>`).join('')}</tr>`).join('')+
+      '</tbody></table>';
+  }
+
+  function toggleDecision(){
+    document.getElementById('decisionBox').style.display = form.hasDecision.value === 'yes' ? 'block' : 'none';
+  }
+
+  function toggleFollow(){
+    const box = document.getElementById('followBox');
+    if(box) box.style.display = form.hasFollow.value === 'yes' ? 'block' : 'none';
+  }
+
+  function renderReport(){
+    const d = getData();
+    const attendance = collectRows(attendanceRows,'.attendance-item',['group','avg','note']);
+    const activities = collectRows(activityRows,'.activity-item',['date','host','name','count','note']);
+    const follows = collectRows(followRows,'.follow-item',['item','owner','due']);
+    const decisionHtml = d.hasDecision === 'yes' ? `
+      <div class="decision">
+        ${d.decisionNote ? nl2br(d.decisionNote) : '<span class="empty">未填寫。</span>'}
+      </div>` : '<p>沒有。</p>';
+    const followHtml = d.hasFollow === 'yes'
+      ? tableOrEmpty(follows, ['事項','建議跟進部門','期望完成時間'], ['item','owner','due'])
+      : '<p>沒有。</p>';
+
+    const reportMonth = formatMonth(d.month);
+    document.getElementById('preview').innerHTML = `
+      <div class="report-title">
+        <h1>${esc(d.church || '堂會名稱')}</h1>
+        <h2>${esc(reportMonth || '')}堂區會議報告</h2>
+      </div>
+      <div class="dept-title">${esc(d.dept || '部門／牧區名稱')}</div>
+      <h3>一、恆常聚會人數</h3>
+      ${tableOrEmpty(attendance, ['組別 / 單位 / 恆常活動','平均出席人數','備註'], ['group','avg','note'])}
+      <h3>二、活動／事工</h3>
+      ${tableOrEmpty(activities, ['日期','主辦單位','活動／事工','人數','其他補充'], ['date','host','name','count','note'])}
+      <h3>三、其他補充報告</h3>
+      <p>${d.important ? nl2br(d.important) : '<span class="empty">沒有填寫。</span>'}</p>
+      <h3>四、需要交堂區議會跟進</h3>
+      ${decisionHtml}
+      <h3>五、需要部門協作</h3>
+      ${followHtml}
+      <h3>六、未來事工預告</h3>
+      <p>${d.future ? nl2br(d.future) : '<span class="empty">沒有填寫。</span>'}</p>`;
+  }
+
+  function printPdf(){
+    renderReport();
+    window.print();
+  }
+
+  function getReportHtml(){
+    renderReport();
+    const title = (formatMonth(form.month.value) || '') + '堂區會議報告_' + (form.dept.value || '未命名');
+    const styles = `
+      body{ font-family:"PMingLiU","MingLiU","Noto Serif TC",serif; color:#111; line-height:1.28; font-size:12pt; }
+      .report{ width:100%; font-size:12pt; line-height:1.28; }
+      .report *{ font-size:12pt !important; }
+      .report-title{ text-align:center; margin-bottom:10px; }
+      .report-title h1{ margin:0; }
+      .report-title h2{ margin:3px 0 0; }
+      .dept-title{ text-align:center; font-weight:700; border:1px solid #111; padding:3px 5px; margin:10px 0 8px; }
+      h3{ margin:8px 0 4px; }
+      p{ margin:3px 0 6px; }
+      table{ width:100%; border-collapse:collapse; margin:4px 0 7px; }
+      th,td{ border:1px solid #444; padding:2px 4px; vertical-align:top; line-height:1.2; }
+      th{ background:#f2f2f2; text-align:left; }
+      .decision{ border:1px solid #111; background:#f7f7f7; padding:5px 6px; margin:4px 0 6px; line-height:1.25; }
+      .muted{ color:#666; }
+      .empty{ color:#777; }
+    `;
+    return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${styles}</style></head><body><div class="report">${document.getElementById('preview').innerHTML}</div></body></html>`;
+  }
+
+  function safeFilename(name){
+    return String(name || '堂區會議報告').replace(/[\\/:*?"<>|]/g,'_').replace(/\s+/g,'_');
+  }
+
+  function downloadDoc(){
+    const d = getData();
+    const filename = safeFilename(`${formatMonth(d.month) || '堂區會議報告'}_${d.dept || '未命名'}`) + '.doc';
+    const html = getReportHtml();
+    const blob = new Blob(['\ufeff', html], {type:'application/msword;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function copyReportHtml(){
+    renderReport();
+    const preview = document.getElementById('preview');
+    try{
+      if(navigator.clipboard && window.ClipboardItem){
+        const htmlBlob = new Blob([preview.innerHTML], {type:'text/html'});
+        const textBlob = new Blob([preview.innerText], {type:'text/plain'});
+        await navigator.clipboard.write([new ClipboardItem({'text/html': htmlBlob, 'text/plain': textBlob})]);
+        alert('已複製報告內容，可直接貼到 Word。');
+        return;
+      }
+    }catch(e){}
+    const range = document.createRange();
+    range.selectNodeContents(preview);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand('copy');
+    sel.removeAllRanges();
+    alert('已複製報告內容，可直接貼到 Word。');
+  }
+
+  function state(){
+    return {
+      fields:getData(),
+      attendance:collectRows(attendanceRows,'.attendance-item',['group','avg','note']),
+      activities:collectRows(activityRows,'.activity-item',['date','host','name','count','note']),
+      follows:collectRows(followRows,'.follow-item',['item','owner','due'])
+    };
+  }
+
+  function applyState(s){
+    Object.entries(s.fields || {}).forEach(([k,v]) => { if(form.elements[k]) form.elements[k].value = v; });
+    form.church.value='北角衞理堂';
+    attendanceRows.innerHTML=''; activityRows.innerHTML=''; followRows.innerHTML='';
+    (s.attendance||[]).forEach(addAttendanceRow);
+    (s.activities||[]).forEach(addActivityRow);
+    (s.follows||[]).forEach(addFollowRow);
+    if(!(s.attendance||[]).length) addDefaultAttendanceRows();
+    if(!(s.activities||[]).length) addDefaultActivityRows();
+    if(!(s.follows||[]).length) addFollowRow();
+    toggleDecision(); toggleFollow(); renderReport();
+  }
+
+  function loadEmbeddedDraft(){
+    const node = document.getElementById('embeddedDraft');
+    if(!node || !node.textContent.trim()) return false;
+    try{
+      const s = JSON.parse(node.textContent);
+      applyState(s);
+      return true;
+    }catch(e){
+      console.warn('Embedded draft could not be loaded.', e);
+      return false;
+    }
+  }
+
+  function downloadDraftHtml(){
+    const s = state();
+    const draftNode = document.getElementById('embeddedDraft');
+    draftNode.textContent = JSON.stringify(s);
+    const html = '<!doctype html>\n' + document.documentElement.outerHTML;
+    const d = getData();
+    const filename = safeFilename(`${formatMonth(d.month) || '堂區會議報告'}_${d.dept || '未命名'}_草稿`) + '.html';
+    const blob = new Blob(['\ufeff', html], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function saveDraft(){
+    localStorage.setItem('churchReportDraft', JSON.stringify(state()));
+    alert('已儲存在此瀏覽器。');
+  }
+
+  function loadDraft(){
+    const raw = localStorage.getItem('churchReportDraft');
+    if(!raw){ alert('未有已儲存草稿。'); return; }
+    const s = JSON.parse(raw);
+    applyState(s);
+  }
+
+  function clearAll(){
+    if(!confirm('確定清空所有已填資料？')) return;
+    form.reset(); form.church.value='北角衞理堂'; form.month.value='2026-03';
+    attendanceRows.innerHTML=''; activityRows.innerHTML=''; followRows.innerHTML='';
+    addDefaultAttendanceRows(); addDefaultActivityRows(); addFollowRow(); toggleDecision(); toggleFollow(); renderReport();
+  }
+
+  if(!loadEmbeddedDraft()){
+    addDefaultAttendanceRows(); addDefaultActivityRows(); addFollowRow(); toggleDecision(); toggleFollow(); renderReport();
+  }
+</script>
+</body>
+</html>
