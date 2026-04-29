@@ -278,7 +278,7 @@
       <div class="dept-title">${esc(d.dept || '部門／牧區名稱')}</div>
       <h3>一、恆常聚會人數</h3>
       ${tableOrEmpty(attendance, ['組別 / 單位 / 恆常活動','前月人數','上月人數','備註'], ['group','last','now','note'])}
-      <h3>二、本月活動／事工</h3>
+      <h3>二、活動／事工</h3>
       ${tableOrEmpty(activities, ['日期','主辦單位','活動／事工','人數','其他補充'], ['date','host','name','count','note'])}
       <h3>三、其他補充報告</h3>
       <p>${d.important ? nl2br(d.important) : '<span class="empty">沒有填寫。</span>'}</p>
