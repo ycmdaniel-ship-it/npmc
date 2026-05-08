@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>堂區會議報告填寫範本 V1.51</title>
+  <title>堂區會議報告填寫範本 V1.52</title>
   <style>
     :root{
       --ink:#1f2937; --muted:#6b7280; --line:#d1d5db; --soft:#f3f4f6; --panel:#ffffff; --accent:#374151;
@@ -84,7 +84,7 @@
   <div class="app">
     <div class="topbar no-print">
       <div>
-        <h1>堂區會議報告填寫範本 V1.51</h1>
+        <h1>堂區會議報告填寫範本 V1.52</h1>
         <div class="hint">上方填寫資料，下方會即時生成正式報告預覽。完成後可輸出 PDF、下載 Word 可開啟的 DOC 檔，或將草稿另存成新的 HTML 檔，下次開啟時會自動載入內容。</div>
       </div>
       <div class="actions">
@@ -310,12 +310,12 @@
     div.className='activity-row activity-item';
     div.innerHTML = `
       <div><label>日期 (DD/MM/YY)</label><input value="${esc(data.date||'')}" placeholder="01/03/26"></div>
-      <div><label>主辦單位</label><input value="${esc(data.host||'')}" placeholder="例如：華語團契"></div>
+      <div><label>主辦單位</label><div class="autocomplete-wrap"><input class="unit-autocomplete" value="${esc(data.host||'')}" placeholder="例如：華語團契；輸入部分字眼可揀選"></div></div>
       <div><label>活動／事工</label><input value="${esc(data.name||'')}" placeholder="活動名稱"></div>
       <div><label>人數</label><input value="${esc(data.count||'')}" placeholder="14"></div>
       <div><label>其他補充</label><input value="${esc(data.note||'')}" placeholder="可留空"></div>
       <button type="button" class="danger small" onclick="this.parentElement.remove(); renderReport();">刪除</button>`;
-    activityRows.appendChild(div); renderReport();
+    activityRows.appendChild(div); attachUnitAutocomplete(div.querySelector('.unit-autocomplete')); renderReport();
   }
 
   function addFollowRow(data={}){
