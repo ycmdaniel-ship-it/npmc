@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>堂區會議報告填寫範本 V1.5</title>
+  <title>堂區會議報告填寫範本 V1.51</title>
   <style>
     :root{
       --ink:#1f2937; --muted:#6b7280; --line:#d1d5db; --soft:#f3f4f6; --panel:#ffffff; --accent:#374151;
@@ -53,6 +53,13 @@
     .decision{ border:1px solid #111; background:#f7f7f7; padding:5px 6px; margin:4px 0 6px; line-height:1.25; }
     .muted{ color:#666; }
     .print-only{ display:none; }
+
+    .autocomplete-wrap{ position:relative; }
+    .suggestion-list{ position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:50; background:#fff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 24px rgba(0,0,0,.12); max-height:220px; overflow:auto; display:none; }
+    .suggestion-item{ padding:8px 10px; cursor:pointer; border-bottom:1px solid #f1f5f9; font-size:14px; }
+    .suggestion-item:last-child{ border-bottom:0; }
+    .suggestion-item:hover, .suggestion-item.active{ background:#f3f4f6; }
+    .suggestion-item small{ display:block; color:#6b7280; margin-top:2px; font-size:12px; }
     @media (max-width: 900px){ .row,.activity-row,.follow-row,.grid2,.grid3{ grid-template-columns:1fr; } }
     @media print{
       body{ background:white; }
@@ -77,7 +84,7 @@
   <div class="app">
     <div class="topbar no-print">
       <div>
-        <h1>堂區會議報告填寫範本 V1.5</h1>
+        <h1>堂區會議報告填寫範本 V1.51</h1>
         <div class="hint">上方填寫資料，下方會即時生成正式報告預覽。完成後可輸出 PDF、下載 Word 可開啟的 DOC 檔，或將草稿另存成新的 HTML 檔，下次開啟時會自動載入內容。</div>
       </div>
       <div class="actions">
@@ -195,15 +202,107 @@
   }
   function val(selector, root=document){ const el=root.querySelector(selector); return el ? el.value.trim() : ''; }
 
+  const unitOptions = [
+    {value:'撒母耳團契', keywords:'samuel'},
+    {value:'約翰團契', keywords:'john'},
+    {value:'便雅憫團契', keywords:'benjamin'},
+    {value:'北角衞理小學 校園事工', keywords:'北衞小學 衞小 小學 校園事工'},
+    {value:'炮台山循道衞理中學 校園事工', keywords:'炮台山 炮循 循道 中學 校園事工'},
+    {value:'香港真光中學 校園事工', keywords:'真光 中學 校園事工'},
+    {value:'顯理中學 校園事工', keywords:'顯理 中學 校園事工'},
+    {value:'兒童崇拜', keywords:'兒崇'},
+    {value:'小學級主日學', keywords:'小主 小學 主日學'},
+    {value:'中學級主日學', keywords:'中主 中學 主日學'},
+    {value:'三高團契', keywords:'伉儷團契 伉儷 三高'},
+    {value:'成年小組', keywords:'成人小組'},
+    {value:'家長團契', keywords:'家長'},
+    {value:'仁愛家', keywords:'仁愛'},
+    {value:'華語團契', keywords:'普通話 國語 華語'},
+    {value:'幼兒級主日學', keywords:'幼兒 主日學'},
+    {value:'安德烈家長小組', keywords:'安德烈 家長'},
+    {value:'衞小家長小組', keywords:'衛小 衞小 小學家長'},
+    {value:'成年團契', keywords:'成人團契'},
+    {value:'婦女服務會', keywords:'婦女'},
+    {value:'男同道團', keywords:'男同道'},
+    {value:'壯男同道團', keywords:'壯男'},
+    {value:'早堂招待', keywords:'早招 招待'},
+    {value:'午堂招待', keywords:'午招 招待'},
+    {value:'早堂詩班', keywords:'早詩 詩班'},
+    {value:'午堂詩班', keywords:'午詩 詩班'},
+    {value:'敬拜隊', keywords:'敬拜 worship'},
+    {value:'兒童合唱團', keywords:'兒童 合唱團'},
+    {value:'影音組', keywords:'影音 AV 音響'},
+    {value:'插花組', keywords:'插花 花藝'},
+    {value:'財務組', keywords:'財政 財務'},
+    {value:'投資保值組', keywords:'投資 保值'},
+    {value:'堂務組', keywords:'堂務 場地'},
+    {value:'人事組', keywords:'人事'},
+    {value:'媒體組', keywords:'媒體 media'},
+    {value:'海外宣教組', keywords:'海外 宣教'},
+    {value:'本地佈道組', keywords:'本地 佈道 宣教'},
+    {value:'社會關懷小組', keywords:'社關 社會關懷'},
+    {value:'北衞學堂', keywords:'北衛學堂 學堂'},
+    {value:'靈命組', keywords:'靈命 靈修'},
+    {value:'探訪組', keywords:'探訪'},
+    {value:'關顧組', keywords:'關顧'},
+    {value:'動員組', keywords:'動員'}
+  ];
+
+  function normalizeText(s){ return String(s || '').toLowerCase().replace(/\s+/g,''); }
+
+  function attachUnitAutocomplete(input){
+    if(!input || input.dataset.autocompleteAttached === '1') return;
+    input.dataset.autocompleteAttached = '1';
+    const wrap = input.closest('.autocomplete-wrap') || input.parentElement;
+    const list = document.createElement('div');
+    list.className = 'suggestion-list';
+    wrap.appendChild(list);
+    let activeIndex = -1;
+    let currentMatches = [];
+
+    function hide(){ list.style.display='none'; activeIndex=-1; }
+    function choose(item){ input.value = item.value; hide(); renderReport(); input.focus(); }
+    function renderSuggestions(){
+      const q = normalizeText(input.value);
+      if(!q){ hide(); return; }
+      currentMatches = unitOptions.filter(item => normalizeText(item.value + ' ' + (item.keywords || '')).includes(q)).slice(0, 8);
+      if(!currentMatches.length){ hide(); return; }
+      list.innerHTML = currentMatches.map((item, i) => `<div class="suggestion-item${i===activeIndex?' active':''}" data-index="${i}">${esc(item.value)}${item.keywords ? `<small>${esc(item.keywords)}</small>` : ''}</div>`).join('');
+      list.style.display='block';
+    }
+
+    input.addEventListener('input', () => { activeIndex=-1; renderSuggestions(); renderReport(); });
+    input.addEventListener('focus', renderSuggestions);
+    input.addEventListener('keydown', e => {
+      if(list.style.display !== 'block') return;
+      if(e.key === 'ArrowDown'){
+        e.preventDefault(); activeIndex = (activeIndex + 1) % currentMatches.length; renderSuggestions();
+      }else if(e.key === 'ArrowUp'){
+        e.preventDefault(); activeIndex = (activeIndex - 1 + currentMatches.length) % currentMatches.length; renderSuggestions();
+      }else if(e.key === 'Enter' && activeIndex >= 0){
+        e.preventDefault(); choose(currentMatches[activeIndex]);
+      }else if(e.key === 'Escape'){
+        hide();
+      }
+    });
+    list.addEventListener('mousedown', e => {
+      const itemEl = e.target.closest('.suggestion-item');
+      if(!itemEl) return;
+      e.preventDefault();
+      choose(currentMatches[Number(itemEl.dataset.index)]);
+    });
+    document.addEventListener('mousedown', e => { if(!wrap.contains(e.target)) hide(); });
+  }
+
   function addAttendanceRow(data={}){
     const div = document.createElement('div');
     div.className='row attendance-item';
     div.innerHTML = `
-      <div><label>組別 / 單位 / 恆常活動</label><input value="${esc(data.group||'')}" placeholder="例如：成年小組"></div>
+      <div><label>組別 / 單位 / 恆常活動</label><div class="autocomplete-wrap"><input class="unit-autocomplete" value="${esc(data.group||'')}" placeholder="例如：成年小組；輸入部分字眼可揀選"></div></div>
       <div><label>平均出席人數</label><input value="${esc(data.avg||data.now||'')}" placeholder="例如：67"></div>
       <div><label>備註</label><input value="${esc(data.note||'')}" placeholder="可留空"></div>
       <button type="button" class="danger small" onclick="this.parentElement.remove(); renderReport();">刪除</button>`;
-    attendanceRows.appendChild(div); renderReport();
+    attendanceRows.appendChild(div); attachUnitAutocomplete(div.querySelector('.unit-autocomplete')); renderReport();
   }
 
   function addActivityRow(data={}){
