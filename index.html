@@ -3,22 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>堂區會議報告填寫範本 V1.4</title>
+  <title>堂區會議報告填寫範本 V1.5</title>
   <style>
     :root{
       --ink:#1f2937; --muted:#6b7280; --line:#d1d5db; --soft:#f3f4f6; --panel:#ffffff; --accent:#374151;
     }
     *{ box-sizing:border-box; }
-    body{ margin:0; font-family:"Noto Serif TC","PMingLiU","MingLiU",serif; color:var(--ink); background:#f6f7f9; line-height:1.55; }
+    body{ margin:0; font-family:"Microsoft JhengHei","PingFang TC","Noto Sans CJK TC","Heiti TC",Arial,sans-serif; color:var(--ink); background:#f6f7f9; line-height:1.55; }
     .app{ max-width:1180px; margin:0 auto; padding:24px; }
     .topbar{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:18px; }
-    .topbar h1{ margin:0; font-size:26px; letter-spacing:.04em; }
+    .topbar h1{ margin:0; font-size:26px; letter-spacing:.04em; font-weight:700; }
     .hint{ color:var(--muted); font-size:14px; margin-top:4px; }
     .layout{ display:flex; flex-direction:column; gap:20px; align-items:stretch; }
     .card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:0 6px 18px rgba(0,0,0,.04); }
-    .card h2{ margin:0 0 12px; font-size:20px; border-bottom:2px solid var(--accent); padding-bottom:8px; }
+    .card h2{ margin:0 0 14px; font-size:23px; font-weight:700; border-bottom:2px solid var(--accent); padding-bottom:8px; }
     .section{ border:1px solid var(--line); border-radius:12px; padding:14px; margin:14px 0; background:#fff; }
-    .section h3{ margin:0 0 10px; font-size:17px; }
+    .section h3{ margin:0 0 12px; font-size:20px; font-weight:700; letter-spacing:.02em; }
     label{ display:block; font-weight:600; margin:10px 0 5px; }
     input, textarea, select{ width:100%; padding:9px 10px; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit; font-size:15px; background:#fff; }
     input[readonly]{ background:#f3f4f6; color:#374151; cursor:not-allowed; }
@@ -28,7 +28,11 @@
     .row{ display:grid; grid-template-columns: 1.4fr .9fr 1.5fr auto; gap:8px; align-items:end; margin:8px 0; }
     .activity-row{ display:grid; grid-template-columns: .9fr 1.1fr 1.6fr .6fr 1.6fr auto; gap:8px; align-items:end; margin:8px 0; }
     .follow-row{ display:grid; grid-template-columns: 1.6fr 1fr 1fr auto; gap:8px; align-items:end; margin:8px 0; }
-    button{ border:0; border-radius:10px; padding:9px 13px; font-family:inherit; font-size:15px; cursor:pointer; background:#374151; color:white; }
+    button{ border:0; border-radius:10px; padding:9px 13px; font-family:inherit; font-size:15px; cursor:pointer; background:#374151; color:white; font-weight:600; display:inline-flex; align-items:center; gap:7px; transition:transform .08s ease, box-shadow .12s ease, background .12s ease; }
+    button:hover{ transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.12); }
+    .icon-badge{ min-width:28px; height:24px; padding:0 5px; border-radius:7px; background:rgba(255,255,255,.18); color:inherit; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; letter-spacing:.03em; line-height:1; }
+    button.secondary .icon-badge{ background:rgba(17,24,39,.09); }
+    button.danger .icon-badge{ background:rgba(255,255,255,.18); }
     button.secondary{ background:#e5e7eb; color:#111827; }
     button.danger{ background:#991b1b; }
     button.small{ padding:8px 10px; font-size:13px; }
@@ -37,10 +41,10 @@
     .report{ font-size:12pt; line-height:1.28; }
     .report *{ font-size:12pt !important; }
     .report-title{ text-align:center; margin-bottom:10px; }
-    .report-title h1{ margin:0; }
+    .report-title h1{ margin:0; font-weight:700; }
     .report-title h2{ margin:3px 0 0; border:none; padding:0; }
     .dept-title{ text-align:center; font-weight:700; border:1px solid #111; padding:3px 5px; margin:10px 0 8px; }
-    .report h3{ margin:8px 0 4px; }
+    .report h3{ margin:8px 0 4px; font-weight:700; }
     .report p{ margin:3px 0 6px; }
     .report table{ width:100%; border-collapse:collapse; margin:4px 0 7px; }
     .report th,.report td{ border:1px solid #444; padding:2px 4px; vertical-align:top; line-height:1.22; }
@@ -73,17 +77,17 @@
   <div class="app">
     <div class="topbar no-print">
       <div>
-        <h1>堂區會議報告填寫範本 V1.4</h1>
+        <h1>堂區會議報告填寫範本 V1.5</h1>
         <div class="hint">上方填寫資料，下方會即時生成正式報告預覽。完成後可輸出 PDF、下載 Word 可開啟的 DOC 檔，或將草稿另存成新的 HTML 檔，下次開啟時會自動載入內容。</div>
       </div>
       <div class="actions">
-        <button onclick="printPdf()">儲存為 PDF 檔案</button>
-        <button onclick="downloadDoc()">儲存為 WORD(DOC) 檔案</button>
-        <button class="secondary" onclick="copyReportHtml()">複製全部內容</button>
-        <button class="secondary" onclick="downloadDraftHtml()">儲存草稿另存 HTML 檔案</button>
-        <button class="secondary" onclick="saveDraft()">儲存草稿於此瀏覽器</button>
-        <button class="secondary" onclick="loadDraft()">載入瀏覽器草稿</button>
-        <button class="danger" onclick="clearAll()">清空</button>
+        <button onclick="printPdf()"><span class="icon-badge">PDF</span>輸出 / 儲存為 PDF</button>
+        <button onclick="downloadDoc()"><span class="icon-badge">W</span>下載 Word / DOC</button>
+        <button class="secondary" onclick="copyReportHtml()"><span class="icon-badge">COPY</span>複製報告內容</button>
+        <button class="secondary" onclick="downloadDraftHtml()"><span class="icon-badge">SAVE</span>儲存草稿成 HTML</button>
+        <button class="secondary" onclick="saveDraft()"><span class="icon-badge">MEM</span>暫存於此瀏覽器</button>
+        <button class="secondary" onclick="loadDraft()"><span class="icon-badge">LOAD</span>載入瀏覽器草稿</button>
+        <button class="danger" onclick="clearAll()"><span class="icon-badge">CLR</span>清空</button>
       </div>
     </div>
 
@@ -304,14 +308,14 @@
     renderReport();
     const title = (formatMonth(form.month.value) || '') + '堂區會議報告_' + (form.dept.value || '未命名');
     const styles = `
-      body{ font-family:"PMingLiU","MingLiU","Noto Serif TC",serif; color:#111; line-height:1.28; font-size:12pt; }
+      body{ font-family:"Microsoft JhengHei","PingFang TC","Noto Sans CJK TC","Heiti TC",Arial,sans-serif; color:#111; line-height:1.28; font-size:12pt; }
       .report{ width:100%; font-size:12pt; line-height:1.28; }
       .report *{ font-size:12pt !important; }
       .report-title{ text-align:center; margin-bottom:10px; }
-      .report-title h1{ margin:0; }
-      .report-title h2{ margin:3px 0 0; }
+      .report-title h1{ margin:0; font-weight:700; }
+      .report-title h2{ margin:3px 0 0; font-weight:700; }
       .dept-title{ text-align:center; font-weight:700; border:1px solid #111; padding:3px 5px; margin:10px 0 8px; }
-      h3{ margin:8px 0 4px; }
+      h3{ margin:8px 0 4px; font-weight:700; }
       p{ margin:3px 0 6px; }
       table{ width:100%; border-collapse:collapse; margin:4px 0 7px; }
       th,td{ border:1px solid #444; padding:2px 4px; vertical-align:top; line-height:1.2; }
