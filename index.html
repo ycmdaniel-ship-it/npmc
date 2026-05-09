@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>堂區會議報告填寫範本 V1.52</title>
+  <title>堂區會議報告填寫範本 V1.53</title>
   <style>
     :root{
       --ink:#1f2937; --muted:#6b7280; --line:#d1d5db; --soft:#f3f4f6; --panel:#ffffff; --accent:#374151;
@@ -35,6 +35,8 @@
     button.danger .icon-badge{ background:rgba(255,255,255,.18); }
     button.secondary{ background:#e5e7eb; color:#111827; }
     button.danger{ background:#991b1b; }
+    button.upload{ background:#15803d; color:#fff; border-radius:10px; }
+    button.upload .icon-badge{ background:rgba(255,255,255,.2); }
     button.small{ padding:8px 10px; font-size:13px; }
     .actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
     .preview{ background:white; min-height:900px; padding:22px; border:1px solid var(--line); }
@@ -84,7 +86,7 @@
   <div class="app">
     <div class="topbar no-print">
       <div>
-        <h1>堂區會議報告填寫範本 V1.52</h1>
+        <h1>堂區會議報告填寫範本 V1.53</h1>
         <div class="hint">上方填寫資料，下方會即時生成正式報告預覽。完成後可輸出 PDF、下載 Word 可開啟的 DOC 檔，或將草稿另存成新的 HTML 檔，下次開啟時會自動載入內容。</div>
       </div>
       <div class="actions">
@@ -95,6 +97,7 @@
         <button class="secondary" onclick="saveDraft()"><span class="icon-badge">MEM</span>暫存於此瀏覽器</button>
         <button class="secondary" onclick="loadDraft()"><span class="icon-badge">LOAD</span>載入瀏覽器草稿</button>
         <button class="danger" onclick="clearAll()"><span class="icon-badge">CLR</span>清空</button>
+        <button class="upload" onclick="window.open('https://forms.gle/fvfYGQo1stEN8CVR8','_blank')"><span class="icon-badge">UP</span>前往上傳提交報告</button>
       </div>
     </div>
 
