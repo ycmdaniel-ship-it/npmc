@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>敬拜隊智能輪值表 V1 測試版</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #243043;
+      --muted: #6b7280;
+      --line: #d9dee8;
+      --blue: #e7f0ff;
+      --blueText: #2457a6;
+      --green: #e9f7ef;
+      --greenText: #187447;
+      --gold: #fff5d8;
+      --goldText: #8a6414;
+      --pink: #fceaf2;
+      --pinkText: #9d3b65;
+      --purple: #efeafd;
+      --purpleText: #5b3fa5;
+      --red: #fdeaea;
+      --redText: #a03a3a;
+      --dark: #1f2937;
+      --accent: #2f6fed;
+      --shadow: 0 12px 28px rgba(31, 41, 55, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      background: linear-gradient(180deg, #edf3ff 0%, var(--bg) 240px);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 64px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .titleBlock h1 {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 42px);
+      letter-spacing: 0.02em;
+    }
+
+    .titleBlock p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .quickButtons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    button, select, input, textarea {
+      font: inherit;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: var(--dark);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(31,41,55,0.14);
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); opacity: 0.92; }
+    .btn.secondary { background: #fff; color: var(--text); border: 1px solid var(--line); box-shadow: none; }
+    .btn.green { background: #16834b; }
+    .btn.blue { background: var(--accent); }
+    .btn.danger { background: #b83b3b; }
+
+    .panel {
+      background: rgba(255,255,255,0.88);
+      border: 1px solid rgba(217,222,232,0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 18px;
+      backdrop-filter: blur(8px);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .field label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .field select, .field input, .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    .field textarea { min-height: 90px; resize: vertical; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.04);
+    }
+
+    .stat .num {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0 18px;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 9px 14px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .tab.active {
+      background: var(--dark);
+      color: #fff;
+      border-color: var(--dark);
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .serviceCard {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 10px 20px rgba(31,41,55,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .serviceTop {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .date {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .theme {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-weight: 700;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .badge.teamA { background: #ffe9e9; color: #9a3737; }
+    .badge.teamB { background: #e7f0ff; color: #2457a6; }
+    .badge.union { background: #eef0f4; color: #4b5563; }
+    .badge.lead { background: var(--gold); color: var(--goldText); }
+    .badge.male { background: var(--blue); color: var(--blueText); }
+    .badge.female { background: var(--pink); color: var(--pinkText); }
+    .badge.music { background: var(--purple); color: var(--purpleText); }
+    .badge.ok { background: var(--green); color: var(--greenText); }
+    .badge.pending { background: #fff5d8; color: #8a6414; }
+    .badge.rejected { background: var(--red); color: var(--redText); }
+
+    .roleRows {
+      display: grid;
+      gap: 8px;
+    }
+
+    .roleRow {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 10px;
+      align-items: start;
+      font-size: 14px;
+    }
+
+    .roleRow .roleName {
+      color: var(--muted);
+    }
+
+    .people {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .personTag {
+      background: #f6f7fa;
+      border: 1px solid #e6e9f0;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 13px;
+    }
+
+    .cardActions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: auto;
+    }
+
+    .cardActions .btn { padding: 8px 12px; font-size: 13px; }
+
+    .tableWrap {
+      overflow: auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 20px rgba(31,41,55,0.04);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th, td {
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 11px 12px;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #536070;
+      font-size: 13px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:hover td { background: #fbfdff; }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+    }
+
+    .modalBackdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.46);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+
+    .modalBackdrop.active { display: flex; }
+
+    .modal {
+      width: min(720px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.22);
+      padding: 22px;
+    }
+
+    .modalHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .modalHeader h2 { margin: 0; }
+
+    .close {
+      border: 0;
+      background: #f3f4f6;
+      border-radius: 999px;
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .formGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .formGrid .full { grid-column: 1 / -1; }
+
+    .empty {
+      background: #fff;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      padding: 30px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .smallNote {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 920px) {
+      header { grid-template-columns: 1fr; }
+      .quickButtons { justify-content: flex-start; }
+      .filters { grid-template-columns: repeat(2, 1fr); }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .split { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 620px) {
+      .container { width: min(100% - 18px, 1180px); padding-top: 18px; }
+      .filters { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .cards { grid-template-columns: 1fr; }
+      .formGrid { grid-template-columns: 1fr; }
+      .panel { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="titleBlock">
+        <h1>敬拜隊智能輪值表 V1</h1>
+        <p>2026年第二季測試版｜查看更表・篩選人員・申請調動・追蹤紀錄</p>
+      </div>
+      <div class="quickButtons">
+        <button class="btn secondary" onclick="setTab('cards')">季度總覽</button>
+        <button class="btn secondary" onclick="showMine()">只看我</button>
+        <button class="btn blue" onclick="jumpThisWeek()">本週名單</button>
+        <button class="btn green" onclick="openRequestModal()">申請調動</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="filters">
+        <div class="field">
+          <label for="monthFilter">月份</label>
+          <select id="monthFilter" onchange="render()">
+            <option value="all">全部月份</option>
+            <option value="04">4月</option>
+            <option value="05">5月</option>
+            <option value="06">6月</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="teamFilter">組別</label>
+          <select id="teamFilter" onchange="render()">
+            <option value="all">全部組別</option>
+            <option value="聯合">聯合崇拜</option>
+            <option value="A">A 組</option>
+            <option value="B">B 組</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="roleFilter">角色</label>
+          <select id="roleFilter" onchange="render()">
+            <option value="all">全部角色</option>
+            <option value="Leader">Leader</option>
+            <option value="男歌手">男歌手</option>
+            <option value="女歌手">女歌手</option>
+            <option value="樂手">樂手</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="personFilter">搜尋人名</label>
+          <input id="personFilter" placeholder="例如：王啟仁" oninput="render()" />
+        </div>
+        <div class="field">
+          <label for="statusFilter">狀態</label>
+          <select id="statusFilter" onchange="render()">
+            <option value="all">全部</option>
+            <option value="confirmed">已安排</option>
+            <option value="lead">只看 Lead</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats" id="stats"></section>
+
+    <div class="tabs">
+      <button class="tab active" id="tab-cards" onclick="setTab('cards')">卡片檢視</button>
+      <button class="tab" id="tab-table" onclick="setTab('table')">表格檢視</button>
+      <button class="tab" id="tab-requests" onclick="setTab('requests')">調動申請</button>
+      <button class="tab" id="tab-log" onclick="setTab('log')">調動 Log</button>
+    </div>
+
+    <main>
+      <section class="view active" id="view-cards">
+        <div class="cards" id="cards"></div>
+      </section>
+
+      <section class="view" id="view-table">
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>組別</th>
+                <th>主日</th>
+                <th>Leader</th>
+                <th>男歌手</th>
+                <th>女歌手</th>
+                <th>樂手</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="view" id="view-requests">
+        <div class="split">
+          <div class="panel">
+            <h2 style="margin-top:0">提交調動申請</h2>
+            <form id="requestForm" onsubmit="submitRequest(event)">
+              <div class="formGrid">
+                <div class="field">
+                  <label>申請人</label>
+                  <input name="applicant" required placeholder="你的姓名" />
+                </div>
+                <div class="field">
+                  <label>原本日期</label>
+                  <select name="fromDate" required id="fromDateSelect"></select>
+                </div>
+                <div class="field">
+                  <label>申請類型</label>
+                  <select name="type" required>
+                    <option value="調走">調走</option>
+                    <option value="對調">對調</option>
+                    <option value="加入">加入</option>
+                    <option value="取消">取消</option>
+                    <option value="更改角色">更改角色</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>想調到日期</label>
+                  <select name="toDate" id="toDateSelect"></select>
+                </div>
+                <div class="field">
+                  <label>原本崗位</label>
+                  <select name="role">
+                    <option value="Leader">Leader</option>
+                    <option value="男歌手">男歌手</option>
+                    <option value="女歌手">女歌手</option>
+                    <option value="樂手">樂手</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>代替人員 / 對調人員</label>
+                  <input name="replacement" placeholder="如已有安排可填寫" />
+                </div>
+                <div class="field full">
+                  <label>原因 / 備註</label>
+                  <textarea name="reason" placeholder="例如：當日未能出席，已找某某代替"></textarea>
+                </div>
+              </div>
+              <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn green" type="submit">提交申請</button>
+                <button class="btn secondary" type="reset">清空</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="panel">
+            <h2 style="margin-top:0">申請狀態</h2>
+            <div id="requestList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-log">
+        <div class="panel">
+          <h2 style="margin-top:0">最近調動紀錄</h2>
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>日期時間</th>
+                  <th>處理人</th>
+                  <th>週次</th>
+                  <th>原本安排</th>
+                  <th>新安排</th>
+                  <th>原因</th>
+                </tr>
+              </thead>
+              <tbody id="logBody"></tbody>
+            </table>
+          </div>
+          <p class="smallNote">測試版中的 Log 是示範資料。正式版可由 Google Sheets 自動記錄。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modalBackdrop" id="detailModal">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>
+          <h2 id="modalTitle">週次詳情</h2>
+          <div class="smallNote" id="modalSub"></div>
+        </div>
+        <button class="close" onclick="closeDetailModal()">×</button>
+      </div>
+      <div id="modalContent"></div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;">
+        <button class="btn green" onclick="openRequestModalFromDetail()">就本週申請調動</button>
+        <button class="btn secondary" onclick="closeDetailModal()">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const membersByRole = {
+      leader: ['姚謝嘉碧', '楊志民', '王啟仁'],
+      music: ['陳美怡', '林晉楠', '陳政民', '陳康華', '李詩天'],
+      male: ['姚嘉駿', '譚恩舜(神學生)'],
+      female: ['趙鄭敏姿', '呂陳懿德', '廖林樞庭', '關善琪', '姚綽祈', '羅廖俊倩', '梁洛僖', '張嘉殷']
+    };
+
+    const services = [
+      { date: '2026-04-05', display: '05/04/2026', month: '04', team: '聯合', theme: '復活主日｜復活奇蹟．燃亮生命', leader: ['王啟仁'], male: ['姚嘉駿'], female: ['關善琪', '羅廖俊倩'], music: ['陳美怡', '林晉楠', '陳政民'] },
+      { date: '2026-04-12', display: '12/04/2026', month: '04', team: 'B', theme: '復活期第二主日｜信心歷練．見證主恩', leader: ['楊志民'], male: ['譚恩舜(神學生)'], female: ['趙鄭敏姿', '梁洛僖'], music: ['陳康華', '李詩天'] },
+      { date: '2026-04-19', display: '19/04/2026', month: '04', team: 'A', theme: '復活期第三主日｜愛的應許．憑信領受', leader: ['王啟仁'], male: ['姚嘉駿'], female: ['呂陳懿德', '張嘉殷'], music: ['陳美怡', '林晉楠'] },
+      { date: '2026-04-26', display: '26/04/2026', month: '04', team: 'B', theme: '復活期第四主日｜豐盛生命．全因有主', leader: ['姚謝嘉碧'], male: ['譚恩舜(神學生)'], female: ['關善琪', '姚綽祈'], music: ['陳政民', '陳康華'] },
+      { date: '2026-05-03', display: '03/05/2026', month: '05', team: 'A', theme: '復活期第五主日｜信靠上帝．揚主美德', leader: ['姚謝嘉碧'], male: ['姚嘉駿'], female: ['廖林樞庭', '羅廖俊倩'], music: ['陳美怡', '李詩天'] },
+      { date: '2026-05-10', display: '10/05/2026', month: '05', team: 'B', theme: '基督化家庭主日｜聖靈同在．宣告主名', leader: ['王啟仁'], male: ['譚恩舜(神學生)'], female: ['趙鄭敏姿', '梁洛僖'], music: ['林晉楠', '陳政民'] },
+      { date: '2026-05-17', display: '17/05/2026', month: '05', team: 'A', theme: '復活期第七主日｜禱告等候．持守合一', leader: ['楊志民'], male: ['姚嘉駿'], female: ['呂陳懿德', '張嘉殷'], music: ['陳康華', '李詩天'] },
+      { date: '2026-05-24', display: '24/05/2026', month: '05', team: 'B', theme: '聖靈降臨主日｜領受聖靈．恩賜服事', leader: ['楊志民'], male: ['譚恩舜(神學生)'], female: ['關善琪', '羅廖俊倩'], music: ['陳美怡', '林晉楠'] },
+      { date: '2026-05-31', display: '31/05/2026', month: '05', team: 'A', theme: '聖三一主日｜接受差遣．主必同在', leader: ['姚謝嘉碧'], male: ['姚嘉駿'], female: ['姚綽祈', '梁洛僖'], music: ['陳政民', '陳康華'] },
+      { date: '2026-06-07', display: '07/06/2026', month: '06', team: 'B', theme: '中國主日｜憑信回應．承受應許', leader: ['王啟仁'], male: ['譚恩舜(神學生)'], female: ['廖林樞庭', '張嘉殷'], music: ['陳美怡', '李詩天'] },
+      { date: '2026-06-14', display: '14/06/2026', month: '06', team: 'A', theme: '聖靈降臨後第三主日｜勇往向前．承擔使命', leader: ['楊志民'], male: ['姚嘉駿'], female: ['趙鄭敏姿', '關善琪'], music: ['林晉楠', '陳政民'] },
+      { date: '2026-06-21', display: '21/06/2026', month: '06', team: 'B', theme: '神學主日｜毋忘身分．踐行主道', leader: ['王啟仁'], male: ['譚恩舜(神學生)'], female: ['呂陳懿德', '羅廖俊倩'], music: ['陳康華', '李詩天'] },
+      { date: '2026-06-28', display: '28/06/2026', month: '06', team: 'A', theme: '聖靈降臨後第五主日｜惟靠主恩．領受福氣', leader: ['姚謝嘉碧'], male: ['姚嘉駿'], female: ['姚綽祈', '梁洛僖', '張嘉殷'], music: ['陳美怡', '林晉楠'] }
+    ];
+
+    let requests = [
+      { time: '2026-05-08 21:15', applicant: '示範組員', fromDate: '24/05/2026', toDate: '31/05/2026', type: '對調', role: '女歌手', replacement: '另一位組員', status: '待處理', reason: '當日家庭聚會' }
+    ];
+
+    const logs = [
+      { time: '2026-05-01 22:15', admin: 'Daniel', week: '10/05/2026', before: 'Leader：王啟仁', after: 'Leader：王啟仁，已確認', reason: '確認出席' },
+      { time: '2026-05-03 09:30', admin: 'Daniel', week: '24/05/2026', before: 'Leader：待定', after: 'Leader：譚恩舜', reason: '補回領唱員' },
+      { time: '2026-05-06 18:40', admin: 'Daniel', week: '31/05/2026', before: '女歌手：待定', after: '女歌手：羅廖俊倩', reason: '補足聲部比例' }
+    ];
+
+    let currentTab = 'cards';
+    let selectedService = null;
+
+    function allPeople(service) {
+      return [...service.leader, ...service.male, ...service.female, ...service.music].filter(Boolean);
+    }
+
+    function filteredServices() {
+      const month = document.getElementById('monthFilter').value;
+      const team = document.getElementById('teamFilter').value;
+      const role = document.getElementById('roleFilter').value;
+      const person = document.getElementById('personFilter').value.trim();
+      const status = document.getElementById('statusFilter').value;
+
+      return services.filter(s => {
+        if (month !== 'all' && s.month !== month) return false;
+        if (team !== 'all' && s.team !== team) return false;
+        if (person && !allPeople(s).some(p => p.includes(person))) return false;
+        if (status === 'lead' && s.leader.length === 0) return false;
+        if (role !== 'all') {
+          const key = role === 'Leader' ? 'leader' : role === '男歌手' ? 'male' : role === '女歌手' ? 'female' : 'music';
+          if (!s[key] || s[key].length === 0) return false;
+        }
+        return true;
+      });
+    }
+
+    function teamBadge(team) {
+      const cls = team === 'A' ? 'teamA' : team === 'B' ? 'teamB' : 'union';
+      return `<span class="badge ${cls}">${team === '聯合' ? '聯合崇拜' : team + ' 組'}</span>`;
+    }
+
+    function personTags(list) {
+      return list.map(p => `<span class="personTag">${p}</span>`).join('') || '<span class="personTag">待定</span>';
+    }
+
+    function renderStats(data) {
+      const totalServices = data.length;
+      const totalLeaders = new Set(data.flatMap(s => s.leader)).size;
+      const totalMale = data.flatMap(s => s.male).filter(p => p !== '待定').length;
+      const totalFemale = data.flatMap(s => s.female).filter(p => p !== '待定').length;
+      document.getElementById('stats').innerHTML = `
+        <div class="stat"><div class="num">${totalServices}</div><div class="label">顯示週次</div></div>
+        <div class="stat"><div class="num">${totalLeaders}</div><div class="label">Leader 人數</div></div>
+        <div class="stat"><div class="num">${totalMale}</div><div class="label">男歌手安排</div></div>
+        <div class="stat"><div class="num">${totalFemale}</div><div class="label">女歌手安排</div></div>
+      `;
+    }
+
+    function renderCards(data) {
+      const cards = document.getElementById('cards');
+      if (!data.length) {
+        cards.innerHTML = '<div class="empty">沒有符合篩選條件的週次。</div>';
+        return;
+      }
+      cards.innerHTML = data.map((s, index) => `
+        <article class="serviceCard">
+          <div class="serviceTop">
+            <div>
+              <div class="date">${s.display}</div>
+              <div class="theme">${s.theme}</div>
+            </div>
+            ${teamBadge(s.team)}
+          </div>
+          <div class="roleRows">
+            <div class="roleRow"><div class="roleName">Leader</div><div class="people">${personTags(s.leader)}</div></div>
+            <div class="roleRow"><div class="roleName">男歌手</div><div class="people">${personTags(s.male)}</div></div>
+            <div class="roleRow"><div class="roleName">女歌手</div><div class="people">${personTags(s.female)}</div></div>
+            <div class="roleRow"><div class="roleName">樂手</div><div class="people">${personTags(s.music)}</div></div>
+          </div>
+          <div class="cardActions">
+            <button class="btn secondary" onclick="openDetail('${s.date}')">查看詳情</button>
+            <button class="btn green" onclick="openRequestModal('${s.date}')">申請調動</button>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderTable(data) {
+      const body = document.getElementById('tableBody');
+      if (!data.length) {
+        body.innerHTML = '<tr><td colspan="8">沒有符合篩選條件的週次。</td></tr>';
+        return;
+      }
+      body.innerHTML = data.map(s => `
+        <tr>
+          <td><strong>${s.display}</strong></td>
+          <td>${teamBadge(s.team)}</td>
+          <td>${s.theme}</td>
+          <td>${s.leader.join('、') || '待定'}</td>
+          <td>${s.male.join('、') || '待定'}</td>
+          <td>${s.female.join('、') || '待定'}</td>
+          <td>${s.music.join('、') || '待定'}</td>
+          <td><button class="btn secondary" onclick="openDetail('${s.date}')">詳情</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderRequests() {
+      const list = document.getElementById('requestList');
+      if (!requests.length) {
+        list.innerHTML = '<div class="empty">暫時未有申請。</div>';
+        return;
+      }
+      list.innerHTML = requests.slice().reverse().map(r => `
+        <div class="serviceCard" style="margin-bottom:10px; box-shadow:none;">
+          <div class="serviceTop">
+            <div>
+              <strong>${r.applicant}</strong>｜${r.type}｜${r.role}
+              <div class="smallNote">${r.fromDate} → ${r.toDate || '未指定日期'}</div>
+            </div>
+            <span class="badge pending">${r.status}</span>
+          </div>
+          <div style="font-size:14px;color:var(--muted)">代替 / 對調：${r.replacement || '未填寫'}</div>
+          <div style="font-size:14px;">${r.reason || '沒有備註'}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderLog() {
+      document.getElementById('logBody').innerHTML = logs.map(l => `
+        <tr>
+          <td>${l.time}</td>
+          <td>${l.admin}</td>
+          <td>${l.week}</td>
+          <td>${l.before}</td>
+          <td>${l.after}</td>
+          <td>${l.reason}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderDateOptions() {
+      const options = '<option value="">請選擇</option>' + services.map(s => `<option value="${s.display}">${s.display}｜${s.team === '聯合' ? '聯合崇拜' : s.team + '組'}｜${s.theme.split('｜')[0]}</option>`).join('');
+      document.getElementById('fromDateSelect').innerHTML = options;
+      document.getElementById('toDateSelect').innerHTML = options;
+    }
+
+    function render() {
+      const data = filteredServices();
+      renderStats(data);
+      renderCards(data);
+      renderTable(data);
+      renderRequests();
+      renderLog();
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      document.getElementById(`view-${tab}`).classList.add('active');
+    }
+
+    function showMine() {
+      const name = prompt('請輸入你的姓名，用來篩選你有份的週次：');
+      if (name) {
+        document.getElementById('personFilter').value = name.trim();
+        render();
+        setTab('cards');
+      }
+    }
+
+    function jumpThisWeek() {
+      const today = new Date();
+      const upcoming = services.find(s => new Date(s.date + 'T00:00:00') >= today) || services[0];
+      document.getElementById('monthFilter').value = upcoming.month;
+      document.getElementById('teamFilter').value = 'all';
+      document.getElementById('roleFilter').value = 'all';
+      document.getElementById('personFilter').value = '';
+      render();
+      openDetail(upcoming.date);
+    }
+
+    function openDetail(date) {
+      const s = services.find(x => x.date === date);
+      if (!s) return;
+      selectedService = s;
+      document.getElementById('modalTitle').textContent = `${s.display}｜${s.team === '聯合' ? '聯合崇拜' : s.team + ' 組'}`;
+      document.getElementById('modalSub').textContent = s.theme;
+      document.getElementById('modalContent').innerHTML = `
+        <div class="roleRows" style="gap:12px;">
+          <div class="roleRow"><div class="roleName"><span class="badge lead">Leader</span></div><div class="people">${personTags(s.leader)}</div></div>
+          <div class="roleRow"><div class="roleName"><span class="badge male">男歌手</span></div><div class="people">${personTags(s.male)}</div></div>
+          <div class="roleRow"><div class="roleName"><span class="badge female">女歌手</span></div><div class="people">${personTags(s.female)}</div></div>
+          <div class="roleRow"><div class="roleName"><span class="badge music">樂手</span></div><div class="people">${personTags(s.music)}</div></div>
+        </div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:18px 0;" />
+        <div class="smallNote">測試版備註：正式版可在這裏加入彩排時間、歌單連結、敬拜設計連結及 WhatsApp 提醒。</div>
+      `;
+      document.getElementById('detailModal').classList.add('active');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.remove('active');
+    }
+
+    function openRequestModal(date) {
+      setTab('requests');
+      setTimeout(() => {
+        if (date) {
+          const s = services.find(x => x.date === date);
+          if (s) document.querySelector('[name="fromDate"]').value = s.display;
+        }
+        window.scrollTo({ top: document.getElementById('view-requests').offsetTop - 120, behavior: 'smooth' });
+      }, 80);
+    }
+
+    function openRequestModalFromDetail() {
+      const date = selectedService?.date;
+      closeDetailModal();
+      openRequestModal(date);
+    }
+
+    function submitRequest(event) {
+      event.preventDefault();
+      const form = event.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+      requests.push({
+        time: new Date().toLocaleString('zh-HK', { hour12: false }),
+        applicant: data.applicant,
+        fromDate: data.fromDate,
+        toDate: data.toDate,
+        type: data.type,
+        role: data.role,
+        replacement: data.replacement,
+        reason: data.reason,
+        status: '待處理'
+      });
+      form.reset();
+      renderRequests();
+      alert('申請已提交。測試版會暫存在畫面上；正式版會寫入 Google Sheets。');
+    }
+
+    document.getElementById('detailModal').addEventListener('click', (e) => {
+      if (e.target.id === 'detailModal') closeDetailModal();
+    });
+
+    renderDateOptions();
+    render();
+  </script>
+</body>
+</html>
