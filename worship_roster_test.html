@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>敬拜隊智能輪值表 V1 測試版</title>
+  <title>敬拜隊智能輪值表 V1.1</title>
   <style>
     :root {
       --bg: #f5f7fb;
@@ -70,11 +70,10 @@
       flex-wrap: wrap;
       gap: 10px;
       justify-content: flex-end;
+      align-items: center;
     }
 
-    button, select, input, textarea {
-      font: inherit;
-    }
+    button, select, input, textarea { font: inherit; }
 
     .btn {
       border: 0;
@@ -85,6 +84,7 @@
       cursor: pointer;
       box-shadow: 0 8px 18px rgba(31,41,55,0.14);
       transition: transform 0.12s ease, opacity 0.12s ease;
+      white-space: nowrap;
     }
 
     .btn:hover { transform: translateY(-1px); opacity: 0.92; }
@@ -92,6 +92,17 @@
     .btn.green { background: #16834b; }
     .btn.blue { background: var(--accent); }
     .btn.danger { background: #b83b3b; }
+
+    .memberQuickSelect {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: #fff;
+      color: var(--text);
+      min-width: 190px;
+      box-shadow: none;
+      outline: none;
+    }
 
     .panel {
       background: rgba(255,255,255,0.88);
@@ -128,32 +139,6 @@
     }
 
     .field textarea { min-height: 90px; resize: vertical; }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .stat {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px;
-      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.04);
-    }
-
-    .stat .num {
-      font-size: 28px;
-      font-weight: 800;
-      margin-bottom: 2px;
-    }
-
-    .stat .label {
-      color: var(--muted);
-      font-size: 13px;
-    }
 
     .tabs {
       display: flex;
@@ -250,9 +235,7 @@
       font-size: 14px;
     }
 
-    .roleRow .roleName {
-      color: var(--muted);
-    }
+    .roleRow .roleName { color: var(--muted); }
 
     .people {
       display: flex;
@@ -386,7 +369,6 @@
       header { grid-template-columns: 1fr; }
       .quickButtons { justify-content: flex-start; }
       .filters { grid-template-columns: repeat(2, 1fr); }
-      .stats { grid-template-columns: repeat(2, 1fr); }
       .cards { grid-template-columns: repeat(2, 1fr); }
       .split { grid-template-columns: 1fr; }
     }
@@ -394,10 +376,10 @@
     @media (max-width: 620px) {
       .container { width: min(100% - 18px, 1180px); padding-top: 18px; }
       .filters { grid-template-columns: 1fr; }
-      .stats { grid-template-columns: 1fr 1fr; }
       .cards { grid-template-columns: 1fr; }
       .formGrid { grid-template-columns: 1fr; }
       .panel { padding: 14px; }
+      .memberQuickSelect { width: 100%; }
     }
   </style>
 </head>
@@ -405,14 +387,16 @@
   <div class="container">
     <header>
       <div class="titleBlock">
-        <h1>敬拜隊智能輪值表 V1</h1>
+        <h1>敬拜隊智能輪值表 V1.1</h1>
         <p>2026年第二季測試版｜查看更表・篩選人員・申請調動・追蹤紀錄</p>
       </div>
       <div class="quickButtons">
-        <button class="btn secondary" onclick="setTab('cards')">季度總覽</button>
-        <button class="btn secondary" onclick="showMine()">只看我</button>
+        <button class="btn secondary" onclick="resetFilters()">季度總覽</button>
+        <select id="memberQuickSelect" class="memberQuickSelect" onchange="filterBySelectedMember()">
+          <option value="">只顯示成員</option>
+        </select>
         <button class="btn blue" onclick="jumpThisWeek()">本週名單</button>
-        <button class="btn green" onclick="openRequestModal()">申請調動</button>
+        <button class="btn green" onclick="openRequestPanel()">申請調動</button>
       </div>
     </header>
 
@@ -448,7 +432,7 @@
         </div>
         <div class="field">
           <label for="personFilter">搜尋人名</label>
-          <input id="personFilter" placeholder="例如：王啟仁" oninput="render()" />
+          <input id="personFilter" placeholder="例如：王啟仁" oninput="syncQuickSelect(); render();" />
         </div>
         <div class="field">
           <label for="statusFilter">狀態</label>
@@ -460,8 +444,6 @@
         </div>
       </div>
     </section>
-
-    <section class="stats" id="stats"></section>
 
     <div class="tabs">
       <button class="tab active" id="tab-cards" onclick="setTab('cards')">卡片檢視</button>
@@ -590,7 +572,7 @@
       </div>
       <div id="modalContent"></div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;">
-        <button class="btn green" onclick="openRequestModalFromDetail()">就本週申請調動</button>
+        <button class="btn green" onclick="openRequestPanelFromDetail()">就本週申請調動</button>
         <button class="btn secondary" onclick="closeDetailModal()">關閉</button>
       </div>
     </div>
@@ -626,8 +608,8 @@
 
     const logs = [
       { time: '2026-05-01 22:15', admin: 'Daniel', week: '10/05/2026', before: 'Leader：王啟仁', after: 'Leader：王啟仁，已確認', reason: '確認出席' },
-      { time: '2026-05-03 09:30', admin: 'Daniel', week: '24/05/2026', before: 'Leader：待定', after: 'Leader：譚恩舜', reason: '補回領唱員' },
-      { time: '2026-05-06 18:40', admin: 'Daniel', week: '31/05/2026', before: '女歌手：待定', after: '女歌手：羅廖俊倩', reason: '補足聲部比例' }
+      { time: '2026-05-03 09:30', admin: 'Daniel', week: '24/05/2026', before: 'Leader：待定', after: 'Leader：楊志民', reason: '補回領唱員' },
+      { time: '2026-05-06 18:40', admin: 'Daniel', week: '31/05/2026', before: '女歌手：待定', after: '女歌手：姚綽祈、梁洛僖', reason: '補足聲部比例' }
     ];
 
     let currentTab = 'cards';
@@ -635,6 +617,32 @@
 
     function allPeople(service) {
       return [...service.leader, ...service.male, ...service.female, ...service.music].filter(Boolean);
+    }
+
+    function getAllMembers() {
+      const set = new Set();
+      Object.values(membersByRole).flat().forEach(name => set.add(name));
+      services.forEach(s => allPeople(s).forEach(name => { if (name && name !== '待定') set.add(name); }));
+      return Array.from(set).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+    }
+
+    function renderMemberQuickSelect() {
+      const select = document.getElementById('memberQuickSelect');
+      select.innerHTML = '<option value="">只顯示成員</option>' + getAllMembers().map(name => `<option value="${name}">${name}</option>`).join('');
+    }
+
+    function filterBySelectedMember() {
+      const selected = document.getElementById('memberQuickSelect').value;
+      document.getElementById('personFilter').value = selected;
+      render();
+      setTab('cards');
+    }
+
+    function syncQuickSelect() {
+      const typed = document.getElementById('personFilter').value.trim();
+      const select = document.getElementById('memberQuickSelect');
+      const exists = Array.from(select.options).some(opt => opt.value === typed);
+      select.value = exists ? typed : '';
     }
 
     function filteredServices() {
@@ -649,6 +657,7 @@
         if (team !== 'all' && s.team !== team) return false;
         if (person && !allPeople(s).some(p => p.includes(person))) return false;
         if (status === 'lead' && s.leader.length === 0) return false;
+        if (status === 'confirmed' && allPeople(s).length === 0) return false;
         if (role !== 'all') {
           const key = role === 'Leader' ? 'leader' : role === '男歌手' ? 'male' : role === '女歌手' ? 'female' : 'music';
           if (!s[key] || s[key].length === 0) return false;
@@ -666,26 +675,13 @@
       return list.map(p => `<span class="personTag">${p}</span>`).join('') || '<span class="personTag">待定</span>';
     }
 
-    function renderStats(data) {
-      const totalServices = data.length;
-      const totalLeaders = new Set(data.flatMap(s => s.leader)).size;
-      const totalMale = data.flatMap(s => s.male).filter(p => p !== '待定').length;
-      const totalFemale = data.flatMap(s => s.female).filter(p => p !== '待定').length;
-      document.getElementById('stats').innerHTML = `
-        <div class="stat"><div class="num">${totalServices}</div><div class="label">顯示週次</div></div>
-        <div class="stat"><div class="num">${totalLeaders}</div><div class="label">Leader 人數</div></div>
-        <div class="stat"><div class="num">${totalMale}</div><div class="label">男歌手安排</div></div>
-        <div class="stat"><div class="num">${totalFemale}</div><div class="label">女歌手安排</div></div>
-      `;
-    }
-
     function renderCards(data) {
       const cards = document.getElementById('cards');
       if (!data.length) {
         cards.innerHTML = '<div class="empty">沒有符合篩選條件的週次。</div>';
         return;
       }
-      cards.innerHTML = data.map((s, index) => `
+      cards.innerHTML = data.map(s => `
         <article class="serviceCard">
           <div class="serviceTop">
             <div>
@@ -702,7 +698,6 @@
           </div>
           <div class="cardActions">
             <button class="btn secondary" onclick="openDetail('${s.date}')">查看詳情</button>
-            <button class="btn green" onclick="openRequestModal('${s.date}')">申請調動</button>
           </div>
         </article>
       `).join('');
@@ -770,7 +765,6 @@
 
     function render() {
       const data = filteredServices();
-      renderStats(data);
       renderCards(data);
       renderTable(data);
       renderRequests();
@@ -785,13 +779,15 @@
       document.getElementById(`view-${tab}`).classList.add('active');
     }
 
-    function showMine() {
-      const name = prompt('請輸入你的姓名，用來篩選你有份的週次：');
-      if (name) {
-        document.getElementById('personFilter').value = name.trim();
-        render();
-        setTab('cards');
-      }
+    function resetFilters() {
+      document.getElementById('monthFilter').value = 'all';
+      document.getElementById('teamFilter').value = 'all';
+      document.getElementById('roleFilter').value = 'all';
+      document.getElementById('personFilter').value = '';
+      document.getElementById('statusFilter').value = 'all';
+      document.getElementById('memberQuickSelect').value = '';
+      render();
+      setTab('cards');
     }
 
     function jumpThisWeek() {
@@ -801,6 +797,8 @@
       document.getElementById('teamFilter').value = 'all';
       document.getElementById('roleFilter').value = 'all';
       document.getElementById('personFilter').value = '';
+      document.getElementById('statusFilter').value = 'all';
+      document.getElementById('memberQuickSelect').value = '';
       render();
       openDetail(upcoming.date);
     }
@@ -828,7 +826,7 @@
       document.getElementById('detailModal').classList.remove('active');
     }
 
-    function openRequestModal(date) {
+    function openRequestPanel(date) {
       setTab('requests');
       setTimeout(() => {
         if (date) {
@@ -839,10 +837,10 @@
       }, 80);
     }
 
-    function openRequestModalFromDetail() {
+    function openRequestPanelFromDetail() {
       const date = selectedService?.date;
       closeDetailModal();
-      openRequestModal(date);
+      openRequestPanel(date);
     }
 
     function submitRequest(event) {
@@ -870,6 +868,7 @@
     });
 
     renderDateOptions();
+    renderMemberQuickSelect();
     render();
   </script>
 </body>
